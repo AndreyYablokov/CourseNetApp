@@ -21,8 +21,7 @@ def process_client_message(message):
     }
 
 
-def main():
-
+def get_command_line_params():
     # Определяем порт
     try:
         if '-p' in sys.argv:
@@ -32,21 +31,30 @@ def main():
         if listen_port < 1024 or listen_port > 65535:
             raise ValueError
     except IndexError:
-        print('После параметра -p необходимо указать номер порта')
-        sys.exit(1)
+        raise IndexError('После параметра -p необходимо указать номер порта')
     except ValueError:
-        print('Номер порта должен быть из диапазоне [1024;65535]')
-        sys.exit(1)
+        raise ValueError('Номер порта должен быть из диапазоне [1024;65535]')
 
     # Определяем адрес
     try:
         if '-a' in sys.argv:
-            listen_address = int(sys.argv[sys.argv.index('-a') + 1])
+            listen_address = sys.argv[sys.argv.index('-a') + 1]
         else:
             listen_address = ''
     except IndexError:
-        print('После параметра -a необходимо указать адрес, который будет слушать сервер')
-        sys.exit(1)
+        raise IndexError('После параметра -a необходимо указать адрес, который будет слушать сервер')
+
+    return {
+        'listen_port': listen_port,
+        'listen_address': listen_address
+    }
+
+
+def main():
+    # Определение параметров коммандной строки
+    command_line_params = get_command_line_params()
+    listen_address = command_line_params['listen_address']
+    listen_port = command_line_params['listen_port']
 
     # Настройка сокета и запуск сервера
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

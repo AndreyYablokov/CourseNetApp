@@ -33,24 +33,29 @@ def process_server_message(message):
     if RESPONSE in message:
         if message[RESPONSE] == 200:
             return '200: OK'
-        return f'400 {message[ERROR]}'
+        return f'400: {message[ERROR]}'
     raise ValueError
+
+
+def get_command_line_params():
+    result = {
+        'server_address': DEFAULT_IP_ADDRESS,
+        'server_port': DEFAULT_PORT
+    }
+    if len(sys.argv) > 1:
+        result['server_address'] = sys.argv[1]
+    if len(sys.argv) > 2:
+        result['server_port'] = int(sys.argv[2])
+    if result['server_port'] < 1024 or result['server_port'] > 65535:
+        raise ValueError('Неверный номер порта, номер порта должен быть из диапазона [1024;65535]')
+    return result
 
 
 def main():
     # Определяем параметры командной строки
-    try:
-        server_address = DEFAULT_IP_ADDRESS
-        server_port = DEFAULT_PORT
-        if len(sys.argv) > 1:
-            server_address = sys.argv[1]
-        if len(sys.argv) > 2:
-            server_port = int(sys.argv[2])
-        if server_port < 1024 or server_port > 65535:
-            raise ValueError
-    except ValueError:
-        print('Номер порта должен быть из диапазоне [1024;65535]')
-        sys.exit(1)
+    command_line_params = get_command_line_params()
+    server_address = command_line_params['server_address']
+    server_port = command_line_params['server_port']
 
     # Настройка сокета и запуск клиента
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
