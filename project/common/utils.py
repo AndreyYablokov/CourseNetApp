@@ -1,5 +1,6 @@
 import json
 from common.constants import MAX_MESSAGE_LENGTH, ENCODING
+from project.errors import IncorrectDataRecivedError, NonDictInputError
 
 
 def get_message(socket):
@@ -15,8 +16,8 @@ def get_message(socket):
         message = json.loads(decoded_message)
         if isinstance(message, dict):
             return message
-        raise ValueError
-    raise ValueError
+        raise NonDictInputError
+    raise IncorrectDataRecivedError
 
 
 def send_message(socket, message):
@@ -32,5 +33,5 @@ def send_message(socket, message):
         encoded_message = decoded_message.encode(ENCODING)
         socket.send(encoded_message)
     else:
-        raise ValueError
+        raise NonDictInputError
 
