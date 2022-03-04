@@ -8,6 +8,7 @@ from common.constants import DEFAULT_IP_ADDRESS, DEFAULT_PORT, ACTION, PRESENCE,
     TIME, USER, ACCOUNT_NAME, RESPONSE, ERROR, STATUS, TYPE
 from common.utils import send_message, get_message
 from errors import ReqFieldMissingError
+from decorators import log
 
 logger = logging.getLogger('client_logger')
 
@@ -44,6 +45,7 @@ def process_server_message(message):
     raise ReqFieldMissingError(RESPONSE)
 
 
+@log
 def get_command_line_params():
     result = {
         'server_address': DEFAULT_IP_ADDRESS,
