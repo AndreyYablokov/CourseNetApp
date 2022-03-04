@@ -1,8 +1,10 @@
 import json
 from common.constants import MAX_MESSAGE_LENGTH, ENCODING
 from project.errors import IncorrectDataRecivedError, NonDictInputError
+from project.decorators import log
 
 
+@log
 def get_message(socket):
     """
     Принять и декодировать сообщение
@@ -20,6 +22,7 @@ def get_message(socket):
     raise IncorrectDataRecivedError
 
 
+@log
 def send_message(socket, message):
     """
     Закодировать и отправить сообщение

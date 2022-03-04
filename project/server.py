@@ -7,6 +7,7 @@ from common.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, PR
     ERROR, DEFAULT_PORT
 from common.utils import get_message, send_message
 from errors import IncorrectDataRecivedError
+from decorators import log
 
 logger = logging.getLogger('server_logger')
 
@@ -27,6 +28,7 @@ def process_client_message(message):
     }
 
 
+@log
 def get_command_line_params():
     # Определяем порт
     try:
