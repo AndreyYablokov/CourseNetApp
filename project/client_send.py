@@ -69,7 +69,7 @@ def get_command_line_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('server_address', default=DEFAULT_IP_ADDRESS, nargs='?')
     parser.add_argument('server_port', default=DEFAULT_PORT, type=int, nargs='?')
-    parser.add_argument('-m', '--mode', default='listen', nargs='?')
+    parser.add_argument('-m', '--mode', default='send', nargs='?')
     namespace = parser.parse_args(sys.argv[1:])
 
     result = {
