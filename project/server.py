@@ -6,7 +6,7 @@ import time
 import logging
 import log.server_log_config
 from common.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, PRESENCE, TIME, USER, \
-    ERROR, DEFAULT_PORT, MESSAGE, MESSAGE_TEXT, SENDER
+    ERROR, DEFAULT_PORT, MESSAGE, MESSAGE_TEXT, SENDER, DESTINATION, EXIT
 from common.utils import get_message, send_message
 from errors import IncorrectDataRecivedError
 from decorators import log
@@ -14,7 +14,7 @@ from decorators import log
 logger = logging.getLogger('server_logger')
 
 
-def process_client_message(message, messages, client_socket):
+def process_client_message(message, messages, client_socket, client_sockets, names):
     """
     Обработать сообщение клиента
     :param message:
@@ -22,14 +22,31 @@ def process_client_message(message, messages, client_socket):
     """
     logger.debug(f'Разбор сообщения от клиента: {message}')
     if ACTION in message and message[ACTION] == PRESENCE:
-        if TIME in message and USER in message and message[USER][ACCOUNT_NAME] == 'Guest':
-            answer = {RESPONSE: 200}
-            send_message(client_socket, answer)
+        if TIME in message and USER in message:
+            if message[USER][ACCOUNT_NAME] not in names.keys():
+                names[message[USER][ACCOUNT_NAME]] = client_socket
+                message = {
+                    RESPONSE: 200
+                }
+                send_message(client_socket, message)
+            else:
+                message = {
+                    RESPONSE: 400,
+                    ERROR: 'Имя пользователя уже занято'
+                }
+                send_message(client_socket, message)
+                client_sockets.remove(client_socket)
+                client_socket.close()
             return
     elif ACTION in message and message[ACTION] == MESSAGE:
-        if TIME in message and MESSAGE_TEXT in message:
-            messages.append((message[ACCOUNT_NAME], message[MESSAGE_TEXT]))
+        if DESTINATION in message and SENDER in message and TIME in message and MESSAGE_TEXT in message:
+            messages.append(message)
             return
+    elif ACTION in message and message[ACTION] == EXIT and ACCOUNT_NAME in message:
+        client_sockets.remove(names[message[ACCOUNT_NAME]])
+        names[message[ACCOUNT_NAME]].close()
+        del names[message[ACCOUNT_NAME]]
+        return
     else:
         answer = {
             RESPONSE: 400,
@@ -37,6 +54,20 @@ def process_client_message(message, messages, client_socket):
         }
         send_message(client_socket, answer)
         return
+
+
+@log
+def process_message(message, names, listen_sockets):
+    if message[DESTINATION] in names and names[message[DESTINATION]] in listen_sockets:
+        send_message(names[message[DESTINATION]], message)
+        logger.info(f'Отправлено сообщение пользователю {message[DESTINATION]} '
+                    f'от пользователя {message[SENDER]}.')
+    elif message[DESTINATION] in names and names[message[DESTINATION]] not in listen_sockets:
+        raise ConnectionError
+    else:
+        logger.error(
+            f'Пользователь {message[DESTINATION]} не зарегистрирован на сервере, '
+            f'отправка сообщения невозможна.')
 
 
 @log
@@ -86,6 +117,7 @@ def main():
 
     client_sockets = []
     messages = []
+    names = dict()
 
     server_socket.listen(MAX_CONNECTIONS)
     while True:
@@ -111,41 +143,19 @@ def main():
             for client_with_message in recv_data_sockets:
                 try:
                     message = get_message(client_with_message)
-                    process_client_message(message, messages, client_with_message)
-                except:
+                    process_client_message(message, messages, client_with_message, client_sockets, names)
+                except Exception:
                     logger.info(f'Клиент {client_with_message.getpeername()} отключился от сервера')
                     client_sockets.remove(client_with_message)
 
-        if messages and send_data_sockets:
-            message = {
-                ACTION: MESSAGE,
-                SENDER: messages[0][0],
-                TIME: time.time(),
-                MESSAGE_TEXT: messages[0][1]
-            }
-            del messages[0]
-            for waiting_client in send_data_sockets:
-                try:
-                    send_message(waiting_client, message)
-                except:
-                    logger.info(f'Клиент {waiting_client.getpeername()} отключился от сервера.')
-                    waiting_client.close()
-                    client_sockets.remove(waiting_client)
-
-        # try:
-        #     client_message = get_message(client_socket)
-        #     logger.debug(f'Получено сообщение: {client_message}')
-        #     server_response = process_client_message(client_message)
-        #     logger.info(f'Сформирован ответ клиенту: {server_response}')
-        #     send_message(client_socket, server_response)
-        #     client_socket.close()
-        #     logger.debug(f'Соединение с клиентом {client_address} разорвано')
-        # except json.JSONDecodeError:
-        #     logger.error(f'Не удалось декодировать сообщение от клиента {client_address}')
-        #     client_socket.close()
-        # except IncorrectDataRecivedError:
-        #     logger.error(f'Прнияты некорректные данные от клиента {client_address}')
-        #     client_socket.close()
+        for message in messages:
+            try:
+                process_message(message, names, send_data_sockets)
+            except Exception:
+                logger.info(f'Связь с клиентом с именем {message[DESTINATION]} была потеряна')
+                client_sockets.remove(names[message[DESTINATION]])
+                del names[message[DESTINATION]]
+        messages.clear()
 
 
 if __name__ == '__main__':
