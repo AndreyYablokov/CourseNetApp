@@ -10,11 +10,15 @@ from common.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, PR
 from common.utils import get_message, send_message
 from errors import IncorrectDataRecivedError
 from decorators import log
+from descriptors import ListenPort
+from metaclasses import ServerVerifier
 
 logger = logging.getLogger('server_logger')
 
 
-class Server:
+class Server(metaclass=ServerVerifier):
+    listen_port = ListenPort()
+
     def __init__(self, listen_address, listen_port):
         self.listen_address = listen_address
         self.listen_port = listen_port
@@ -131,13 +135,8 @@ def get_command_line_params():
             listen_port = int(sys.argv[sys.argv.index('-p') + 1])
         else:
             listen_port = DEFAULT_PORT
-        if listen_port < 1024 or listen_port > 65535:
-            raise ValueError
     except IndexError:
         logger.error('После параметра -p не указан номер порта при запуске скрипта')
-    except ValueError:
-        logger.critical('Неверный номер порта, номер порта должен быть из диапазона [1024;65535]')
-        sys.exit(1)
 
     # Определяем адрес
     try:

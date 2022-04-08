@@ -11,11 +11,12 @@ from common.constants import DEFAULT_IP_ADDRESS, DEFAULT_PORT, ACTION, PRESENCE,
 from common.utils import send_message, get_message
 from errors import ReqFieldMissingError, IncorrectDataRecivedError
 from decorators import log
+from metaclasses import ClientVerifier
 
 logger = logging.getLogger('client_logger')
 
 
-class Client:
+class Client(metaclass=ClientVerifier):
     def __init__(self,  server_address, server_port, client_name):
         self.server_address = server_address
         self.server_port = server_port
