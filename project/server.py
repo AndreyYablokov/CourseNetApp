@@ -12,6 +12,8 @@ from errors import IncorrectDataRecivedError
 from decorators import log
 from descriptors import ListenPort
 from metaclasses import ServerVerifier
+from server_database import ServerDatabase
+import threading
 
 logger = logging.getLogger('server_logger')
 
@@ -19,19 +21,23 @@ logger = logging.getLogger('server_logger')
 class Server(metaclass=ServerVerifier):
     listen_port = ListenPort()
 
-    def __init__(self, listen_address, listen_port):
+    def __init__(self, listen_address, listen_port, database):
         self.listen_address = listen_address
         self.listen_port = listen_port
         self.socket = ''
+        self.database = database
 
-    @staticmethod
+        super().__init__()
+
     @log
-    def process_client_message(message, messages, client_socket, client_sockets, names):
+    def process_client_message(self, message, messages, client_socket, client_sockets, names):
         logger.debug(f'Разбор сообщения от клиента: {message}')
         if ACTION in message and message[ACTION] == PRESENCE:
             if TIME in message and USER in message:
                 if message[USER][ACCOUNT_NAME] not in names.keys():
                     names[message[USER][ACCOUNT_NAME]] = client_socket
+                    client_ip_address, client_port = client_socket.getpeername()
+                    self.database.user_login(message[USER][ACCOUNT_NAME], client_ip_address, client_port)
                     message = {
                         RESPONSE: 200
                     }
@@ -50,6 +56,7 @@ class Server(metaclass=ServerVerifier):
                 messages.append(message)
                 return
         elif ACTION in message and message[ACTION] == EXIT and ACCOUNT_NAME in message:
+            self.database.user_logout(message[ACCOUNT_NAME])
             client_sockets.remove(names[message[ACCOUNT_NAME]])
             names[message[ACCOUNT_NAME]].close()
             del names[message[ACCOUNT_NAME]]
@@ -93,7 +100,7 @@ class Server(metaclass=ServerVerifier):
             try:
                 client_socket, client_address = self.socket.accept()
             except OSError:
-                print(OSError.errno)
+                pass
             else:
                 logger.info(f'Установлено соединение с клиентом: {client_address}')
                 client_sockets.append(client_socket)
@@ -125,6 +132,14 @@ class Server(metaclass=ServerVerifier):
                     client_sockets.remove(names[message[DESTINATION]])
                     del names[message[DESTINATION]]
             messages.clear()
+
+    @staticmethod
+    def print_help():
+        print('Поддерживаемые команды: ')
+        print('users - показать список известных пользователей')
+        print('active_users - показать список подключенных пользователей')
+        print('loghist - показать историю входов пользователей')
+        print('exit - завершить работу')
 
 
 @log
@@ -158,5 +173,32 @@ if __name__ == '__main__':
     listen_address = command_line_params['listen_address']
     listen_port = command_line_params['listen_port']
 
-    server = Server(listen_address, listen_port)
-    server.run()
+    server_database = ServerDatabase()
+
+    server = Server(listen_address, listen_port, server_database)
+    server.daemon = True
+    server.start()
+
+    server.print_help()
+
+    while True:
+        command = input('Введите команду: ')
+        if command == 'help':
+            server.print_help()
+        elif command == 'users':
+            for user in sorted(server_database.user_list()):
+                print(f'Пользователь {user[0]} заходил последний раз {user[1]}')
+        elif command == 'active_users':
+            for user in sorted(server_database.active_user_list()):
+                print(f'Пользователь {user[0]} заходил последний раз {user[3]} c IP-адреса {user[1]} и порта {user[2]}')
+        elif command == 'loghist':
+            username = input('Введите имя пользователя для просмотра его истории. '
+                             'Для вывода всей истории нажмите Enter:')
+            for user in sorted(server_database.login_history_list(username)):
+                print(f'Пользователь {user[0]} заходил последний раз {user[3]} c IP-адреса {user[1]} и порта {user[2]}')
+        elif command == 'exit':
+            break
+        else:
+            print('Команда не распознана')
+
+
