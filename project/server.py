@@ -84,8 +84,19 @@ class Server(threading.Thread, metaclass=ServerVerifier):
         elif ACTION in message and message[ACTION] == MESSAGE:
             if DESTINATION in message and SENDER in message and TIME in message and MESSAGE_TEXT in message:
                 if self.names[message[SENDER]] == client_socket:
-                    self.messages.append(message)
-                    self.database.process_message(message[SENDER], message[DESTINATION])
+                    if message[DESTINATION] in self.names:
+                        self.messages.append(message)
+                        self.database.process_message(message[SENDER], message[DESTINATION])
+                        message = {
+                            RESPONSE: 200
+                        }
+                        send_message(client_socket, message)
+                    else:
+                        message = {
+                            RESPONSE: 400,
+                            ERROR: 'Пользователь не зарегистрирован на сервере'
+                        }
+                        send_message(client_socket, message)
                     return
 
         elif ACTION in message and message[ACTION] == EXIT:
@@ -157,6 +168,7 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                 f'отправка сообщения невозможна.')
 
     def run(self):
+        global new_connection_flag
         self.init_socket()
 
         while True:
@@ -192,6 +204,8 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                                 del self.names[name]
                                 break
                         self.client_sockets.remove(client_with_message)
+                        with connection_flag_lock:
+                            new_connection_flag = True
 
             for message in self.messages:
                 try:
@@ -201,6 +215,8 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                     self.client_sockets.remove(self.names[message[DESTINATION]])
                     self.database.user_logout(message[DESTINATION])
                     del self.names[message[DESTINATION]]
+                    with connection_flag_lock:
+                        new_connection_flag = True
             self.messages.clear()
 
 

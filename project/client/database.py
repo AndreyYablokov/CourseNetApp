@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, create_engine
 from sqlalchemy.orm import sessionmaker
@@ -38,7 +40,9 @@ class ClientDatabase:
             self.login = contact
 
     def __init__(self, login):
-        self.engine = create_engine(f'sqlite:///client_{login}.db3',
+        path = os.path.dirname(os.path.realpath(__file__))
+        filename = f'client_{login}.db3'
+        self.engine = create_engine(f'sqlite:///{os.path.join(path, filename)}',
                                     echo=False, pool_recycle=7200,
                                     connect_args={'check_same_thread': False})
 
