@@ -219,11 +219,23 @@ def get_command_line_params():
     }
 
 
-if __name__ == '__main__':
+def config_load():
     config = configparser.ConfigParser()
-
     dir_path = os.path.dirname(os.path.realpath(__file__))
     config.read(f"{dir_path}/{'server.ini'}")
+    if 'SETTINGS' in config:
+        return config
+    else:
+        config.add_section('SETTINGS')
+        config.set('SETTINGS', 'Default_port', str(DEFAULT_PORT))
+        config.set('SETTINGS', 'Listen_Address', '')
+        config.set('SETTINGS', 'Database_path', '')
+        config.set('SETTINGS', 'Database_file', 'server_database.db3')
+        return config
+
+
+if __name__ == '__main__':
+    config = config_load()
 
     command_line_params = get_command_line_params()
     listen_address = command_line_params['listen_address']
