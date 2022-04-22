@@ -53,6 +53,8 @@ class ClientVerifier(type):
         if 'accept' in ordinary_functions or 'listen' in ordinary_functions \
                 or 'accept' in functions_with_decorators or 'listen' in functions_with_decorators:
             raise TypeError('Использование методов listen и accept не допустимо в классе клиента')
-        if not ('SOCK_STREAM' in arguments and 'AF_INET' in arguments):
-            raise ValueError('Некоректная инициализация сокета')
+        if 'get_message' in ordinary_functions or 'send_message' in ordinary_functions:
+            pass
+        else:
+            raise TypeError('Отсутствуют вызовы функций, работающих с сокетами.')
         super().__init__(cls_name, cls_parents, cls_dict)
