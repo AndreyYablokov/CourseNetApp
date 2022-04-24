@@ -1,7 +1,7 @@
 import json
 from common.constants import MAX_MESSAGE_LENGTH, ENCODING
-from project.errors import IncorrectDataRecivedError, NonDictInputError
-from project.decorators import log
+from common.errors import IncorrectDataRecivedError, NonDictInputError
+from common.decorators import log
 
 
 @log
