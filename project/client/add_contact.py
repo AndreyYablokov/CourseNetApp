@@ -5,7 +5,7 @@ sys.path.append('../')
 from PyQt5.QtWidgets import QDialog, QLabel, QComboBox, QPushButton, QApplication
 from PyQt5.QtCore import Qt
 
-logger = logging.getLogger('client_dist')
+logger = logging.getLogger('client_logger')
 
 
 class AddContactDialog(QDialog):

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, create_engine
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
@@ -12,10 +12,14 @@ class ServerDatabase:
         id = Column(Integer, primary_key=True)
         login = Column(String, unique=True)
         last_connection = Column(DateTime)
+        passwd_hash = Column(String)
+        pubkey = Column(Text)
 
-        def __init__(self, login):
+        def __init__(self, login, passwd_hash):
             self.login = login
             self.last_connection = datetime.now()
+            self.passwd_hash = passwd_hash
+            self.pubkey = None
             self.id = None
 
     class ActiveUsers(Base):
@@ -83,16 +87,15 @@ class ServerDatabase:
         self.session.query(self.ActiveUsers).delete()
         self.session.commit()
 
-    def user_login(self, login, ip_address, port):
+    def user_login(self, login, ip_address, port, key):
         query_result = self.session.query(self.Users).filter_by(login=login)
         if query_result.count():
             user = query_result.first()
             user.last_connection = datetime.now()
+            if user.pubkey != key:
+                user.pubkey = key
         else:
-            user = self.Users(login)
-            self.session.add(user)
-            self.session.commit()
-            self.session.add(self.UsersHistory(user.id))
+            raise ValueError('Пользователь не зарегистрирован.')
 
         self.session.add(self.ActiveUsers(user.id, ip_address, port, datetime.now()))
         self.session.add(self.LoginHistory(user.id, ip_address, port, datetime.now()))
@@ -102,6 +105,48 @@ class ServerDatabase:
         user = self.session.query(self.Users).filter_by(login=login).first()
         self.session.query(self.ActiveUsers).filter_by(user=user.id).delete()
         self.session.commit()
+
+    def add_user(self, name, passwd_hash):
+        """
+        Метод регистрации пользователя.
+        Принимает имя и хэш пароля, создаёт запись в таблице статистики.
+        """
+        user_row = self.Users(name, passwd_hash)
+        self.session.add(user_row)
+        self.session.commit()
+        history_row = self.UsersHistory(user_row.id)
+        self.session.add(history_row)
+        self.session.commit()
+
+    def remove_user(self, name):
+        """Метод удаляющий пользователя из базы."""
+        user = self.session.query(self.Users).filter_by(login=name).first()
+        self.session.query(self.ActiveUsers).filter_by(user=user.id).delete()
+        self.session.query(self.LoginHistory).filter_by(user=user.id).delete()
+        self.session.query(self.UsersContacts).filter_by(user=user.id).delete()
+        self.session.query(
+            self.UsersContacts).filter_by(
+            contact=user.id).delete()
+        self.session.query(self.UsersHistory).filter_by(user=user.id).delete()
+        self.session.query(self.Users).filter_by(login=name).delete()
+        self.session.commit()
+
+    def get_hash(self, name):
+        """Метод получения хэша пароля пользователя."""
+        user = self.session.query(self.Users).filter_by(login=name).first()
+        return user.passwd_hash
+
+    def get_pubkey(self, name):
+        """Метод получения публичного ключа пользователя."""
+        user = self.session.query(self.Users).filter_by(login=name).first()
+        return user.pubkey
+
+    def check_user(self, name):
+        """Метод проверяющий существование пользователя."""
+        if self.session.query(self.Users).filter_by(login=name).count():
+            return True
+        else:
+            return False
 
     def process_message(self, sender, recipient):
         sender = self.session.query(self.Users).filter_by(login=sender).first()
