@@ -37,7 +37,7 @@ class TestClient(unittest.TestCase):
         """Тестирует работу функции process_server_message"""
         self.assertRaises(ValueError, process_server_message, {ERROR: 'Bad Request'})
 
-    @patch.object(sys, 'argv', ['client.py', '187.212.5.240', '65534'])
+    @patch.object(sys, 'argv', ['client_main.py', '187.212.5.240', '65534'])
     def test_get_command_line_params_ok_with_IP_port(self):
         """Тестирует работу функции get_command_line_params"""
         valid_result = {
@@ -46,7 +46,7 @@ class TestClient(unittest.TestCase):
         }
         self.assertEqual(get_command_line_params(), valid_result)
 
-    @patch.object(sys, 'argv', ['client.py', '187.212.5.240'])
+    @patch.object(sys, 'argv', ['client_main.py', '187.212.5.240'])
     def test_get_command_line_params_ok_only_IP(self):
         """Тестирует работу функции get_command_line_params"""
         valid_result = {
@@ -55,7 +55,7 @@ class TestClient(unittest.TestCase):
         }
         self.assertEqual(get_command_line_params(), valid_result)
 
-    @patch.object(sys, 'argv', ['client.py', '187.212.5.240', '1'])
+    @patch.object(sys, 'argv', ['client_main.py', '187.212.5.240', '1'])
     def test_get_command_line_params_not_valid_port(self):
         """Тестирует работу функции get_command_line_params"""
         self.assertRaises(ValueError, get_command_line_params)

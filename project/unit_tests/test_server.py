@@ -87,7 +87,7 @@ class TestServer(unittest.TestCase):
         }
         self.assertEqual(process_client_message(presence_message), self.message_error)
 
-    @patch.object(sys, 'argv', ['server.py', '-a', '192.168.0.1', '-p', '1024'])
+    @patch.object(sys, 'argv', ['server_main.py', '-a', '192.168.0.1', '-p', '1024'])
     def test_get_command_line_params_ok_with_IP_port(self):
         """Тестирует работу функции get_command_line_params"""
         valid_result = {
@@ -96,17 +96,17 @@ class TestServer(unittest.TestCase):
         }
         self.assertEqual(get_command_line_params(), valid_result)
 
-    @patch.object(sys, 'argv', ['server.py', '-p'])
+    @patch.object(sys, 'argv', ['server_main.py', '-p'])
     def test_get_command_line_params_no_port(self):
         """Тестирует работу функции get_command_line_params"""
         self.assertRaises(IndexError, get_command_line_params)
 
-    @patch.object(sys, 'argv', ['server.py', '-a'])
+    @patch.object(sys, 'argv', ['server_main.py', '-a'])
     def test_get_command_line_params_no_address(self):
         """Тестирует работу функции get_command_line_params"""
         self.assertRaises(IndexError, get_command_line_params)
 
-    @patch.object(sys, 'argv', ['server.py', '-p', '1000'])
+    @patch.object(sys, 'argv', ['server_main.py', '-p', '1000'])
     def test_get_command_line_params_wrong_port(self):
         """Тестирует работу функции get_command_line_params"""
         self.assertRaises(ValueError, get_command_line_params)

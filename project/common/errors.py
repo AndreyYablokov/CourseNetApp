@@ -20,3 +20,12 @@ class ReqFieldMissingError(Exception):
 
     def __str__(self):
         return f'В принятом словаре отсутствует обязательное поле {self.missing_field}'
+
+
+class ServerError(Exception):
+    """Указывает на ошибку сервера"""
+    def __init__(self, text):
+        self.text = text
+
+    def __str__(self):
+        return self.text
