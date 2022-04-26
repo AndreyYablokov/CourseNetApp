@@ -5,8 +5,8 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt
 
 
-# Класс окна с историей пользователей
 class HistoryWindow(QDialog):
+    """Класс окна с историей пользователей"""
     def __init__(self, database):
         super().__init__()
         self.database = database

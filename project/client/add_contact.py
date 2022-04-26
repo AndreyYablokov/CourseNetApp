@@ -9,6 +9,7 @@ logger = logging.getLogger('client_logger')
 
 
 class AddContactDialog(QDialog):
+    """ Класс-окно добавления контакта """
     def __init__(self, transport, database):
         super().__init__()
         self.transport = transport

@@ -9,6 +9,7 @@ logger = logging.getLogger('client_logger')
 
 
 class DelContactDialog(QDialog):
+    """ Класс-окно удаления контакта """
     def __init__(self, database):
         super().__init__()
         self.database = database

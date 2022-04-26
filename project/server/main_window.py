@@ -9,8 +9,8 @@ from server.add_user import RegisterUser
 from server.remove_user import DelUserDialog
 
 
-# Класс основного окна
 class MainWindow(QMainWindow):
+    """Класс основного окна сервера"""
     def __init__(self, database, server, config):
         super().__init__()
 

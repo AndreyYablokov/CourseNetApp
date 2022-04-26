@@ -7,13 +7,16 @@ import sys
 import traceback
 from functools import wraps
 
-if sys.argv[0].find('client.py') == -1:
+if sys.argv[0].find('client_main.py') == -1:
     logger = logging.getLogger('server_logger')
 else:
     logger = logging.getLogger('client_logger')
 
 
 def log(func_to_log):
+    """
+    Декоратор для логирования вызова функции
+    """
     @wraps(func_to_log)
     def wrap(*args, **kwargs):
         result = func_to_log(*args, **kwargs)

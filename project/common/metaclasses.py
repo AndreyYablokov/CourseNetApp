@@ -2,6 +2,7 @@ import dis
 
 
 class ServerVerifier(type):
+    """Проверяет класс сервера"""
     def __init__(cls, cls_name, cls_parents, cls_dict):
         ordinary_functions = []
         functions_with_decorators = []
@@ -30,6 +31,7 @@ class ServerVerifier(type):
 
 
 class ClientVerifier(type):
+    """Проверяет класс клиента"""
     def __init__(cls, cls_name, cls_parents, cls_dict):
         ordinary_functions = []
         functions_with_decorators = []

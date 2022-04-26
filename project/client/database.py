@@ -7,6 +7,7 @@ from datetime import datetime
 
 
 class ClientDatabase:
+    """ Класс базы данных клиента """
     Base = declarative_base()
 
     class KnownUsers(Base):
@@ -55,49 +56,58 @@ class ClientDatabase:
         self.session.commit()
 
     def add_contact(self, contact):
+        """ Метод добавления контакта"""
         if not self.session.query(self.Contacts).filter_by(login=contact).count():
             contact_row = self.Contacts(contact)
             self.session.add(contact_row)
             self.session.commit()
 
     def contacts_clear(self):
-        """ Метод, очищающий таблицу со списком контактов. """
+        """ Метод, очищающий таблицу со списком контактов """
         self.session.query(self.Contacts).delete()
         self.session.commit()
 
     def del_contact(self, contact):
+        """ Метод удаления контакта """
         self.session.query(self.Contacts).filter_by(login=contact).delete()
         self.session.commit()
 
     def add_users(self, users):
+        """ Метод добавления пользователя """
         self.session.query(self.KnownUsers).delete()
         for user in users:
             self.session.add(self.KnownUsers(user))
         self.session.commit()
 
     def save_message(self, sender, recipient, message):
+        """ Метод сохранения сообщения"""
         self.session.add(self.MessageHistory(sender, recipient, message))
         self.session.commit()
 
     def get_contacts(self):
+        """ Метод получения списка контактов """
         return [contact[0] for contact in self.session.query(self.Contacts.login).all()]
 
     def get_users(self):
+        """ Метод получения списка пользователей """
         return [user[0] for user in self.session.query(self.KnownUsers.login).all()]
 
     def check_user(self, login):
+        """ Метод проверки пользователя """
         if self.session.query(self.KnownUsers).filter_by(login=login).count():
             return True
         else:
             return False
 
     def check_contact(self, contact):
+        """ Метод проверки контакта """
         if self.session.query(self.Contacts).filter_by(login=contact).count():
             return True
         else:
             return False
 
     def get_history(self, sender=None, recipient=None):
+        """ Метод получения истории """
         query = self.session.query(self.MessageHistory)
         if sender:
             query = query.filter_by(sender=sender)

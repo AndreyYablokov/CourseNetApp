@@ -5,6 +5,7 @@ from datetime import datetime
 
 
 class ServerDatabase:
+    """Класс базы данных сервера"""
     Base = declarative_base()
 
     class Users(Base):
@@ -88,6 +89,7 @@ class ServerDatabase:
         self.session.commit()
 
     def user_login(self, login, ip_address, port, key):
+        """Метод входа пользователя"""
         query_result = self.session.query(self.Users).filter_by(login=login)
         if query_result.count():
             user = query_result.first()
@@ -102,6 +104,7 @@ class ServerDatabase:
         self.session.commit()
 
     def user_logout(self, login):
+        """Метод выхода пользователя"""
         user = self.session.query(self.Users).filter_by(login=login).first()
         self.session.query(self.ActiveUsers).filter_by(user=user.id).delete()
         self.session.commit()
@@ -149,6 +152,7 @@ class ServerDatabase:
             return False
 
     def process_message(self, sender, recipient):
+        """Метод обработки сообщения"""
         sender = self.session.query(self.Users).filter_by(login=sender).first()
         recipient = self.session.query(self.Users).filter_by(login=recipient).first()
         sender_row = self.session.query(self.UsersHistory).filter_by(user=sender.id).first()
@@ -158,6 +162,7 @@ class ServerDatabase:
         self.session.commit()
 
     def add_contact(self, login_user, login_contact):
+        """Метод добавления контакта"""
         # Получаем ID пользователей
         user = self.session.query(self.Users).filter_by(login=login_user).first()
         contact = self.session.query(self.Users).filter_by(login=login_contact).first()
@@ -171,6 +176,7 @@ class ServerDatabase:
         self.session.commit()
 
     def remove_contact(self, login_user, login_contact):
+        """Метод удаления контакта"""
         # Получаем ID пользователей
         user = self.session.query(self.Users).filter_by(login=login_user).first()
         contact = self.session.query(self.Users).filter_by(login=login_contact).first()
@@ -187,6 +193,7 @@ class ServerDatabase:
         self.session.commit()
 
     def user_list(self):
+        """Метод получения списка пользователей"""
         query_result = self.session.query(self.Users.login,
                                           self.Users.last_connection)
         return query_result.all()
@@ -200,6 +207,7 @@ class ServerDatabase:
         return query_result.all()
 
     def login_history_list(self, login=None):
+        """Метод получения списка истории"""
         query_result = self.session.query(self.Users.login,
                                           self.LoginHistory.ip_address,
                                           self.LoginHistory.port,
@@ -210,6 +218,7 @@ class ServerDatabase:
         return query_result.all()
 
     def get_contacts(self, login):
+        """Метод получения списка контактов"""
         # Запрашиваем указанного пользователя
         user = self.session.query(self.Users).filter_by(login=login).one()
 
@@ -222,6 +231,7 @@ class ServerDatabase:
         return [contact[1] for contact in query.all()]
 
     def message_history(self):
+        """Метод получения истории сообщений"""
         query = self.session.query(
             self.Users.login,
             self.Users.last_connection,

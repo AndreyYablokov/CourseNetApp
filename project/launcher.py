@@ -13,10 +13,10 @@ while True:
         break
     elif ACTION == 's':
         clients_count = int(input('Введите количество клиентов для запуска: '))
-        # PROCESSES.append(subprocess.Popen('python server.py',
+        # PROCESSES.append(subprocess.Popen('python server_main.py',
         #                                   creationflags=subprocess.CREATE_NEW_CONSOLE))
         for client_num in range(1, clients_count+1):
-            PROCESSES.append(subprocess.Popen(['python', 'client.py', '-n', f'test{client_num}'],
+            PROCESSES.append(subprocess.Popen(['python', 'client_main.py', '-n', f'test{client_num}'],
                                               creationflags=subprocess.CREATE_NEW_CONSOLE))
     elif ACTION == 'x':
         while PROCESSES:

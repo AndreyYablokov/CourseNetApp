@@ -3,6 +3,7 @@ logger = logging.getLogger('server_logger')
 
 
 class ListenPort:
+    """ Дескриптор порта сервера """
     def __set__(self, instance, value):
         if value < 1024 or value > 65535:
             logger.critical('Попытка запуска сервера с неверным номером порта. '

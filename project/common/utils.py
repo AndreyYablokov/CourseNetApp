@@ -8,8 +8,6 @@ from common.decorators import log
 def get_message(socket):
     """
     Принять и декодировать сообщение
-    :param socket:
-    :return:
     """
 
     encoded_message = socket.recv(MAX_MESSAGE_LENGTH)
@@ -26,9 +24,6 @@ def get_message(socket):
 def send_message(socket, message):
     """
     Закодировать и отправить сообщение
-    :param socket:
-    :param message:
-    :return:
     """
 
     if isinstance(message, dict):

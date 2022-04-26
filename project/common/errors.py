@@ -23,6 +23,7 @@ class ReqFieldMissingError(Exception):
 
 
 class ServerError(Exception):
+    """Указывает на ошибку сервера"""
     def __init__(self, text):
         self.text = text
 

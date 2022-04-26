@@ -3,8 +3,8 @@ from PyQt5.QtCore import Qt
 import os
 
 
-# Класс окна настроек
 class ConfigWindow(QDialog):
+    """Класс окна настроек сервера"""
     def __init__(self, config):
         super().__init__()
         self.config = config

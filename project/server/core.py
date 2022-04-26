@@ -25,6 +25,7 @@ logger = logging.getLogger('server_logger')
 
 
 class MessageProcessor(threading.Thread):
+    """Класс обработки сообщений"""
     listen_port = ListenPort()
 
     def __init__(self, listen_address, listen_port, database):
@@ -41,6 +42,7 @@ class MessageProcessor(threading.Thread):
         super().__init__()
 
     def init_socket(self):
+        """Инициализирует сокет сервера"""
         logger.info(
             f'Запущен сервер, порт для подключений: {self.listen_port}, '
             f'адрес с которого принимаются подключения: {self.listen_address}.'
@@ -54,6 +56,7 @@ class MessageProcessor(threading.Thread):
         self.socket.listen(MAX_CONNECTIONS)
 
     def run(self):
+        """Запускает сервер"""
         self.init_socket()
 
         while self.running:
@@ -181,7 +184,7 @@ class MessageProcessor(threading.Thread):
                 sock.close()
 
     def service_update_lists(self):
-        '''Метод реализующий отправки сервисного сообщения 205 клиентам.'''
+        """Метод реализующий отправки сервисного сообщения 205 клиентам"""
         message = {
             RESPONSE: 205
         }
@@ -192,6 +195,7 @@ class MessageProcessor(threading.Thread):
                 self.remove_client(self.names[client])
 
     def process_message(self, message):
+        """Метод обработки сообщения"""
         if message[DESTINATION] in self.names and self.names[message[DESTINATION]] in self.listen_sockets:
             try:
                 send_message(self.names[message[DESTINATION]], message)
@@ -209,6 +213,7 @@ class MessageProcessor(threading.Thread):
                 f'отправка сообщения невозможна.')
 
     def process_client_message(self, message, client_socket):
+        """Метод обработки сообщения клиента"""
         logger.debug(f'Разбор сообщения от клиента: {message}')
         if ACTION in message and message[ACTION] == PRESENCE:
             if TIME in message and USER in message:
